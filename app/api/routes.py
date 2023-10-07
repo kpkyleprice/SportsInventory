@@ -1,16 +1,13 @@
 from flask import Blueprint, request, jsonify, render_template
 from helpers import token_required
-from models import db, User, Contact, contact_schema, contacts_schema
+from models import db, User, Fan, contact_schema, contacts_schema
 
 api = Blueprint('api',__name__, url_prefix='/api')
 
-@api.route('/getdata')
-def getdata():
-    return {'yee': 'haw'}
 
-@api.route('/contacts', methods = ['POST'])
+@api.route('/fans', methods = ['POST'])
 @token_required
-def create_contact(current_user_token):
+def create_fan(current_user_token):
     name = request.json['name']
     email = request.json['email']
     state = request.json['state']
@@ -20,54 +17,54 @@ def create_contact(current_user_token):
 
     print(f'BIG TESTER: {current_user_token.token}')
 
-    contact = Contact(name, email, state, team, sport, user_token = user_token )
+    fan = Fan(name, email, state, team, sport, user_token = user_token )
 
-    db.session.add(contact)
+    db.session.add(fan)
     db.session.commit()
 
-    response = contact_schema.dump(contact)
+    response = contact_schema.dump(fan)
     return jsonify(response)
 
-@api.route('/contacts', methods = ['GET'])
+@api.route('/fans', methods = ['GET'])
 @token_required
-def get_contact(current_user_token):
+def get_fan(current_user_token):
     a_user = current_user_token.token
-    contacts = Contact.query.filter_by(user_token = a_user).all()
-    response = contacts_schema.dump(contacts)
+    fans = Fan.query.filter_by(user_token = a_user).all()
+    response = contacts_schema.dump(fans)
     return jsonify(response)
 
-@api.route('/contacts/<id>', methods = ['GET'])
+@api.route('/fans/<id>', methods = ['GET'])
 @token_required
-def get_contact_two(current_user_token, id):
+def get_single_fan(current_user_token, id):
     fan = current_user_token.token
     if fan == current_user_token.token:
-        contact = Contact.query.get(id)
-        response = contact_schema.dump(contact)
+        fan = fan.query.get(id)
+        response = contact_schema.dump(fan)
         return jsonify(response)
     else:
         return jsonify({"message": "Valid Token Required"}),401
 
-@api.route('/contacts/<id>', methods = ['POST','PUT'])
+@api.route('/fans/<id>', methods = ['POST','PUT'])
 @token_required
-def update_contact(current_user_token,id):
-    contact = Contact.query.get(id) 
-    contact.name = request.json['name']
-    contact.email = request.json['email']
-    contact.state = request.json['state']
-    contact.team = request.json['team']
-    contact.sport = request.json['sport']
-    contact.user_token = current_user_token.token
+def update_fan(current_user_token,id):
+    fan = Fan.query.get(id) 
+    fan.name = request.json['name']
+    fan.email = request.json['email']
+    fan.state = request.json['state']
+    fan.team = request.json['team']
+    fan.sport = request.json['sport']
+    fan.user_token = current_user_token.token
 
     db.session.commit()
-    response = contact_schema.dump(contact)
+    response = contact_schema.dump(fan)
     return jsonify(response)
 
 
-@api.route('/contacts/<id>', methods = ['DELETE'])
+@api.route('/fans/<id>', methods = ['DELETE'])
 @token_required
-def delete_contact(current_user_token, id):
-    contact = Contact.query.get(id)
-    db.session.delete(contact)
+def delete_fan(current_user_token, id):
+    fan = Fan.query.get(id)
+    db.session.delete(fan)
     db.session.commit()
-    response = contact_schema.dump(contact)
+    response = contact_schema.dump(fan)
     return jsonify(response)
